@@ -67,6 +67,7 @@ export default {
     mounted() {
         this.GetPosts();
     },
+   
     methods: {
         GetPosts() {
             let postssSession = this.$session.get("posts");
@@ -103,26 +104,26 @@ export default {
                 );
             }
         },
-        ChangeModalTitle(title) {
-
-            this.modalTitle = title;
-
-        },
+      
         OpenPostModaltoAdd() {
-            this.ChangeModalTitle("Create Post");
-            this.$root.$emit('OpenPostModaltoAdd', this.modalTitle);
+            this.modalTitle = "Create Post";
+            this.$root.$emit('OpenPostModal', this.modalTitle,this.posts);
         },
         OpenPostModaltoEdit(editItem) {
-            this.ChangeModalTitle("Edit Post");
-            this.$root.$emit('OpenPostModaltoEdit', editItem, this.modalTitle);
+            this.modalTitle = "Edit Post";
+            this.$root.$emit('OpenPostModal', this.modalTitle,this.posts,editItem);
 
         },
         DeletePost(index){
             this.posts.splice(index,1);
+            this.$session.set(
+                "posts",
+                this.posts
+            );
         },
 
-        OnSubmitPostModal(value) {
-            this.postModel = value;
+        OnSubmitPostModal(postModel) {
+       
         },
     },
 

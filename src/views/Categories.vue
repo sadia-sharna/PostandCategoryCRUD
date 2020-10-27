@@ -81,6 +81,7 @@ export default {
         this.GetCategories();
 
     },
+    
     methods: {
         GetCategories() {
             let categoriesSession = this.$session.get("categories");
@@ -107,18 +108,15 @@ export default {
             }
         },
 
-        ChangeModalTitle(title) {
-
-            this.modalTitle = title;
-
-        },
+       
         OpenCategoryModaltoAdd() {
-            this.ChangeModalTitle("Create Category");
-            this.$root.$emit('OpenCategoryModaltoAdd', this.modalTitle);
+            
+            this.modalTitle = "Create Category";
+            this.$root.$emit('OpenCategoryModal', this.modalTitle,this.categories);
         },
         OpenCategoryModaltoEdit(editItem) {
-            this.ChangeModalTitle("Edit Category");
-            this.$root.$emit('OpenCategoryModaltoEdit', editItem, this.modalTitle);
+             this.modalTitle = "Edit Category";
+            this.$root.$emit('OpenCategoryModal',  this.modalTitle,this.categories,editItem);
 
         },
         DeleteCategory(index) {
@@ -128,22 +126,9 @@ export default {
                 this.categories
             );
         },
-        OnSubmitCategoryModal(categoryModel, title) {
-            if (title == "Create Category") {
-                let findCategory = this.categories.find(x => x.categoryName == categoryModel.categoryName && x.description == categoryModel.description);
-                if (!findCategory) this.categories.push(categoryModel);
+        OnSubmitCategoryModal(categoryModel) {
+            
 
-            } else if (title == "Edit Category") {
-                let findCategory = this.categories.find(x => x.categoryId == categoryModel.categoryId);
-                findCategory.categoryName = categoryModel.categoryName;
-                findCategory.description = categoryModel.description;
-
-            }
-            this.$session.set(
-                "categories",
-                this.categories
-            );
-            // this.categoryModel = categoryModel;
         },
     },
 

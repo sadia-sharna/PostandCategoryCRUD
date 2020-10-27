@@ -37,25 +37,76 @@ export default {
         return {
             categoryModel: {},
             title: '',
+            categories: [],
         }
     },
 
     mounted() {
-        this.$root.$on('OpenCategoryModaltoEdit', (categoryModel, title) => {
-            this.categoryModel = categoryModel;
+        this.$root.$on('OpenCategoryModal', (title, categories, categoryModel) => {
+
             this.title = title;
+            this.categories = categories;
+
+            if (title == "Create Category") {
+
+                this.categoryModel = {};
+            } else if (title == "Edit Category") {
+                this.categoryModel = categoryModel;
+            }
 
         });
-        this.$root.$on('OpenCategoryModaltoAdd', (title) => {
-            this.categoryModel = {},
-                this.title = title;
 
-        });
+    },
+    computed: {
+
+        latestCategoryId() {
+            if (this.categories.length > 0) return this.categories[this.categories.length - 1].categoryId;
+            return 0;
+
+        },
     },
     methods: {
         SubmitCategory(event) {
-            $('#categoryModal').modal('hide');
-            this.$emit('OnSubmitCategoryModal', this.categoryModel, this.title);
+            if (this.title == "Create Category") this.CreateCategory();
+            else if (this.title == "Edit Category") this.EditCategory();
+
+        },
+
+        CreateCategory() {
+            if ((this.categoryModel.categoryName != "" && this.categoryModel.categoryName != null) || (this.categoryModel.description != "" && this.categoryModel.description != null)) {
+                let findCategory = this.categories.find(x => x.categoryName == this.categoryModel.categoryName && x.description == this.categoryModel.description);
+                if (!findCategory) {
+                    this.categoryModel.categoryId = this.latestCategoryId + 1;
+                    this.categories.push(this.categoryModel);
+                    $('#categoryModal').modal('hide');
+                    this.$session.set(
+                        "categories",
+                        this.categories
+                    );
+                    this.$emit('OnSubmitCategoryModal', this.categoryModel);
+                } else {
+                    alert("Category already exists!");
+                }
+
+            } else {
+                alert("Please Fill up the fields.");
+            }
+        },
+        EditCategory() {
+            let findCategory = this.categories.find(x => x.categoryId == this.categoryModel.categoryId);
+            if (findCategory) {
+                findCategory.categoryName = this.categoryModel.categoryName;
+                findCategory.description = this.categoryModel.description;
+                $('#categoryModal').modal('hide');
+                this.$session.set(
+                    "categories",
+                    this.categories
+                );
+                this.$emit('OnSubmitCategoryModal', this.categoryModel);
+            } else {
+                alert("Can not find the Category.");
+            }
+
         },
     },
 

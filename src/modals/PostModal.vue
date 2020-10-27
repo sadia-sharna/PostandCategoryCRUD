@@ -25,23 +25,23 @@
                             </div>
                             <input type='text' placeholder="Enter a Tag" class='tag-input__text' @click="showMultiselectCategoriesDropdown = true;" />
                         </div>
-                        <ul class="list-group" style="overflow-y: scroll; max-height: 40vh;" v-if="showMultiselectCategoriesDropdown == true">
+                        <ul class="list-group" style="overflow-y: scroll; max-height: 30vh;" v-if="showMultiselectCategoriesDropdown == true">
+                            <a data-toggle="modal" data-target="#categoryModal" @click="OpenCategoryModaltoAdd()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <span>
+                                    Create new
+                                </span>
+
+                            </a>
                             <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" v-for="(item, ind) in categories" :key="ind">
                                 <span>
 
                                     {{item.categoryName}}</span>
 
                                 <span class="badge badge-primary badge-pill">
-                                    Click to Select</span>
+                                    Click to Select
+                                </span>
                             </a>
-                            <a data-toggle="modal" data-target="#categoryModal" @click="OpenCategoryModaltoAdd()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <span>
 
-                                    Create new</span>
-
-                                <span class="badge badge-primary badge-pill">
-                                    Click to Select</span>
-                            </a>
                         </ul>
                     </div>
                     <!-- <div class="form-group">
@@ -101,25 +101,39 @@ export default {
     data() {
         return {
             categoryModel: {},
-            postModel: {},
+            postModel: {
+                categories: [],
+            },
             title: '',
             shadowPostModal: false,
             showMultiselectCategoriesDropdown: false,
             categories: [],
+            posts: [],
         }
     },
 
     mounted() {
-        this.$root.$on('OpenPostModaltoEdit', (postModel, title) => {
-            this.postModel = postModel;
+        this.$root.$on('OpenPostModal', (title, posts, postModel) => {
+            if (title == "Edit Post") this.postModel = postModel;
+            else if (title == "Create Post") {
+                this.postModel = {
+                    categories: []
+                };
+            }
             this.title = title;
+            this.posts = posts;
 
         });
-        this.$root.$on('OpenPostModaltoAdd', (title) => {
-            this.title = title;
-            this.postModel = {};
-        });
+
         this.GetCategories();
+    },
+    computed: {
+
+        latestPostId() {
+            if (this.posts.length > 0) return this.posts[this.posts.length - 1].postId;
+            return 0;
+
+        },
     },
     methods: {
         GetCategories() {
@@ -142,17 +156,58 @@ export default {
             }
         },
         SubmitPost(event) {
-            $('#postModal').modal('hide');
-            this.$emit('OnSubmitPostModal', this.postModel);
+
+            if (this.title == "Create Post") this.CreatePost();
+
+            else if (this.title == "Edit Post") this.EditPost();
+        },
+        CreatePost() {
+            if ((this.postModel.title != "" && this.postModel.title != null) || (this.postModel.description != "" && this.postModel.description != null)) {
+
+                let findPost = this.posts.find(x => x.title == this.postModel.title && x.description == this.postModel.description);
+                if (!findPost) {
+                    this.postModel.postId = this.latestPostId + 1;
+                    this.posts.push(this.postModel);
+                    this.$session.set(
+                        "posts",
+                        this.posts
+                    );
+                    $('#postModal').modal('hide');
+                    this.$emit('OnSubmitPostModal', this.postModel);
+                } else {
+                    alert("Post already exists!");
+
+                }
+            } else {
+                alert("Please Fill up at least one field.");
+            }
+
+        },
+        EditPost() {
+            let findPost = this.posts.find(x => x.postId == this.postModel.postId);
+            if (findPost) {
+                findPost.title = this.postModel.title;
+                findPost.description = this.postModel.description;
+                $('#postModal').modal('hide');
+                this.$session.set(
+                    "posts",
+                    this.posts
+                );
+                $('#postModal').modal('hide');
+                this.$emit('OnSubmitPostModal', this.postModel);
+            }
+            else{
+                alert("Can not find the Category.");
+            }
+
         },
         OpenCategoryModaltoAdd() {
-            // this.shadowPostModal = true;
 
-            this.$root.$emit('OpenCategoryModaltoAdd', "Create Category");
+            this.$root.$emit('OpenCategoryModal', "Create Category", this.categories);
         },
-        OnSubmitCategoryModal(value, title) {
-            // this.shadowPostModal = false;
-            this.categoryModel = value;
+        OnSubmitCategoryModal(categoryModel) {
+
+            this.postModel.categories.push(categoryModel);
             this.showMultiselectCategoriesDropdown = false;
         },
 
