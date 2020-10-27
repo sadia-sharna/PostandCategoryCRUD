@@ -8,6 +8,8 @@ import Bootstrap from 'bootstrap/dist/js/bootstrap.min.js';
 import 'bootstrap/dist/css/bootstrap.css';
 import "font-awesome/css/font-awesome.css";
 import "font-awesome/css/font-awesome.min.css";
+import VueSession from 'vue-session';
+Vue.use(VueSession);
 
 Vue.config.productionTip = false
 
