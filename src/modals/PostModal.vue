@@ -20,10 +20,10 @@
                         <div class='tag-input'>
 
                             <div v-for='(tag, ind) in postModel.categories' :key='ind' class='tag-input__tag'>
-                                <span>x</span>
+                                <span @click="RemoveSelectedCategory(ind)">x</span>
                                 {{ tag.categoryName }}
                             </div>
-                            <input type='text' placeholder="Enter a Tag" class='tag-input__text' @click="showMultiselectCategoriesDropdown = true;" />
+                            <input type='text' placeholder="Enter a Tag" class='tag-input__text' v-model="searchCategory" @click="showMultiselectCategoriesDropdown = true" />
                         </div>
                         <ul class="list-group" style="overflow-y: scroll; max-height: 30vh;" v-if="showMultiselectCategoriesDropdown == true">
                             <a data-toggle="modal" data-target="#categoryModal" @click="OpenCategoryModaltoAdd()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
@@ -32,45 +32,18 @@
                                 </span>
 
                             </a>
-                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" v-for="(item, ind) in categories" :key="ind">
+                            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
+                            v-for="(item, ind) in filteredCategories" :key="ind"
+                            @click="SelectCategory(item);" 
+                            :class="{ 'bg-green': IsCategorySelected(item)}">
                                 <span>
 
                                     {{item.categoryName}}</span>
-
-                                <span class="badge badge-primary badge-pill">
-                                    Click to Select
-                                </span>
                             </a>
 
                         </ul>
                     </div>
-                    <!-- <div class="form-group">
-                    <label class="col-form-label">Post Category</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search here..." aria-label="Search" aria-describedby="basic-addon2" ref="searchBox" @click="showMultiselectCategoriesDropdown = true;"/>
-                    </div>
-                    <ul class="list-group" style="overflow-y: scroll; max-height: 40vh;"
-                    v-if="showMultiselectCategoriesDropdown == true">
-                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                        v-for="(item, ind) in categories" :key="ind">
-                            <span>
 
-                                {{item.categoryName}}</span>
-
-                            <span class="badge badge-primary badge-pill">
-                                Click to Select</span>
-                        </a>
-                        <a data-toggle="modal" data-target="#categoryModal" @click="OpenCategoryModaltoAdd()" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <span>
-
-                                Create new</span>
-
-                            <span class="badge badge-primary badge-pill">
-                                Click to Select</span>
-                        </a>
-                    </ul>
-
-                </div> -->
                     <div class="form-group">
                         <label for="message-text" class="col-form-label">Description</label>
                         <textarea class="form-control" id="Description" v-model="postModel.description"></textarea>
@@ -105,10 +78,10 @@ export default {
                 categories: [],
             },
             title: '',
-            shadowPostModal: false,
             showMultiselectCategoriesDropdown: false,
             categories: [],
             posts: [],
+            searchCategory: "",
         }
     },
 
@@ -122,6 +95,8 @@ export default {
             }
             this.title = title;
             this.posts = posts;
+            this.searchCategory="";
+            this.showMultiselectCategoriesDropdown = false;
 
         });
 
@@ -134,8 +109,20 @@ export default {
             return 0;
 
         },
+
+        filteredCategories() {
+
+            if (this.searchCategory.length > 0) {
+                return this.categories.filter((item) => {
+                    return item.categoryName.toLowerCase().includes(this.searchCategory.toLowerCase());
+                });
+            } else return this.categories;
+
+        }
+
     },
     methods: {
+
         GetCategories() {
             let categoriesSession = this.$session.get("categories");
             if (categoriesSession != undefined) this.categories = categoriesSession;
@@ -154,6 +141,28 @@ export default {
                     this.categories
                 );
             }
+        },
+        
+        SelectCategory(selectedItem) {
+            let findItem = this.postModel.categories.find(x => x.categoryId == selectedItem.categoryId);
+            if (!findItem) {
+                this.showMultiselectCategoriesDropdown = false;
+                this.postModel.categories.push(selectedItem);
+
+            }
+
+        },
+        RemoveSelectedCategory(index) {
+            this.postModel.categories.splice(index, 1);
+
+        },
+        IsCategorySelected(categoryItem){
+            let findItem = this.postModel.categories.find(x => x.categoryId == categoryItem.categoryId);
+            if (findItem) {
+                return true;
+            }
+            else return false;
+
         },
         SubmitPost(event) {
 
@@ -195,8 +204,7 @@ export default {
                 );
                 $('#postModal').modal('hide');
                 this.$emit('OnSubmitPostModal', this.postModel);
-            }
-            else{
+            } else {
                 alert("Can not find the Category.");
             }
 
@@ -249,5 +257,8 @@ export default {
     font-size: 0.9em;
     line-height: 50px;
     background: none;
+}
+.bg-green{
+    background-color: #01D9AB;
 }
 </style>

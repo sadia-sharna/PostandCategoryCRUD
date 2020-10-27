@@ -20,7 +20,7 @@
                     <tr v-for="(item,ind) in posts" :key="ind">
                         <td>{{item.title}}</td>
                         <td>{{item.description}}</td>
-                        <td><span v-for="(categories, ind) in item.categories" :key="ind">{{categories.categoryName}},</span></td>
+                        <td><span v-for="(categories, ind) in item.categories" :key="ind">{{categories.categoryName}} <span v-if="ind!= item.categories.length-1">, </span></span></td>
                         <td>
                             <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#postModal" @click="OpenPostModaltoEdit(item)">
                                 Edit
